@@ -1,0 +1,109 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: databaseusers.k8s.tuunit.com
+spec:
+  group: k8s.tuunit.com
+  names:
+    kind: DatabaseUser
+    listKind: DatabaseUserList
+    plural: databaseusers
+    singular: databaseuser
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: DatabaseUser is the Schema for the databaseusers API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DatabaseUserSpec defines the desired state of DatabaseUser
+            properties:
+              databaseRef:
+                description: DatabaseRef is a reference to a Database object in the
+                  same namespace
+                minLength: 1
+                type: string
+              password:
+                description: Password is the password for the user
+                minLength: 1
+                type: string
+              passwordSecretRef:
+                description: PasswordSecretRef is a reference to an existing secret
+                  in the same namespace
+                properties:
+                  key:
+                    description: The key of the secret to select from.  Must be a
+                      valid secret key.
+                    minLength: 1
+                    type: string
+                  name:
+                    description: The name of the secret in the object's namespace
+                      to select from.
+                    minLength: 1
+                    type: string
+                required:
+                - key
+                - name
+                type: object
+              privileges:
+                description: Privileges is a list of privileges to grant to the user
+                items:
+                  description: |-
+                    ACL for PostgreSQL
+                    https://www.postgresql.org/docs/15/ddl-priv.html
+                    ACL for MySQL
+                    https://dev.mysql.com/doc/refman/8.3/en/grant.html
+                  properties:
+                    objectType:
+                      description: The type of object for which to grant privileges
+                      type: string
+                    privileges:
+                      description: The list of privileges to grant
+                      items:
+                        type: string
+                      minItems: 1
+                      type: array
+                  required:
+                  - objectType
+                  - privileges
+                  type: object
+                minItems: 1
+                type: array
+              username:
+                description: Username is the name of the user to create
+                minLength: 1
+                type: string
+            required:
+            - databaseRef
+            - privileges
+            - username
+            type: object
+          status:
+            description: DatabaseUserStatus defines the observed state of DatabaseUser
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

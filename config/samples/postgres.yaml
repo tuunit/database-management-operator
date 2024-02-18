@@ -1,0 +1,10 @@
+apiVersion: k8s.tuunit.com/v1
+kind: DatabaseHost
+metadata:
+  name: postgres
+spec:
+  host: localhost
+  superuser: postgres
+  password: password
+  port: 5432
+  type: postgres

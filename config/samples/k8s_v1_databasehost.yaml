@@ -1,0 +1,12 @@
+apiVersion: k8s.tuunit.com/v1
+kind: DatabaseHost
+metadata:
+  labels:
+    app.kubernetes.io/name: databasehost
+    app.kubernetes.io/instance: databasehost-sample
+    app.kubernetes.io/part-of: database-management-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: database-management-operator
+  name: databasehost-sample
+spec:
+  # TODO(user): Add fields here

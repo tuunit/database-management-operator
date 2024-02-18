@@ -1,0 +1,31 @@
+# permissions for end users to edit databaseusers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: databaseuser-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: database-management-operator
+    app.kubernetes.io/part-of: database-management-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: databaseuser-editor-role
+rules:
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databaseusers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databaseusers/status
+  verbs:
+  - get

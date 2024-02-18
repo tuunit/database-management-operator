@@ -1,0 +1,86 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: databasehosts.k8s.tuunit.com
+spec:
+  group: k8s.tuunit.com
+  names:
+    kind: DatabaseHost
+    listKind: DatabaseHostList
+    plural: databasehosts
+    singular: databasehost
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: DatabaseHost is the Schema for the databasehosts API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DatabaseHostSpec defines the desired state of DatabaseHost
+            properties:
+              host:
+                description: Host is the hostname or IP address of the database host
+                minLength: 1
+                type: string
+              password:
+                description: Password is the password for the superuser
+                type: string
+              passwordSecretRef:
+                description: |-
+                  PasswordSecretRef is a reference to a secret in the same namespace
+                  that contains the password for the superuser
+                type: string
+              port:
+                description: Port is the port number for the database
+                format: int32
+                type: integer
+              superuser:
+                description: Superuser is the name of the superuser for the database
+                minLength: 1
+                type: string
+              type:
+                description: Type is the type of database running on the host
+                enum:
+                - postgres
+                - mysql
+                type: string
+            required:
+            - host
+            - superuser
+            - type
+            type: object
+          status:
+            description: DatabaseHostStatus defines the observed state of DatabaseHost
+            properties:
+              connectionStatus:
+                type: string
+              lastConnectionTime:
+                format: date-time
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

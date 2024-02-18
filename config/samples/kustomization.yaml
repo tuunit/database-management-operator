@@ -1,0 +1,6 @@
+## Append samples of your project ##
+resources:
+- k8s_v1_databasehost.yaml
+- k8s_v1alpha1_database.yaml
+- k8s_v1alpha1_databaseuser.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples

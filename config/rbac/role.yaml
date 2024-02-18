@@ -1,0 +1,84 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databasehosts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databasehosts/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databasehosts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databases/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databases/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databaseusers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databaseusers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - k8s.tuunit.com
+  resources:
+  - databaseusers/status
+  verbs:
+  - get
+  - patch
+  - update
