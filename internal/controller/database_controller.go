@@ -18,12 +18,15 @@ package controller
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	k8sv1 "github.com/tuunit/external-database-operator/api/v1"
 	k8sv1alpha1 "github.com/tuunit/external-database-operator/api/v1alpha1"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -50,7 +53,92 @@ type DatabaseReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.17.0/pkg/reconcile
 func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
+
+	database := &k8sv1alpha1.Database{}
+	if err := r.Get(ctx, req.NamespacedName, database); err != nil {
+		log.Error(err, "unable to fetch Database")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	spec := database.Spec
+
+	if spec.DatabaseHostRef == "" {
+		log.Info("DatabaseHostRef is not set")
+		database.Status.CreationStatus = "DatabaseHostRef is not set"
+		if err := r.Status().Update(ctx, database); err != nil {
+			log.Error(err, "unable to update Database status")
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
+	}
+
+	databaseHost := &k8sv1.DatabaseHost{}
+	if err := r.Get(ctx, client.ObjectKey{Namespace: database.Namespace, Name: spec.DatabaseHostRef}, databaseHost); err != nil {
+		log.Error(err, "unable to fetch DatabaseHost")
+
+		database.Status.CreationStatus = fmt.Sprintf("DatabaseHost '%s' not found", spec.DatabaseHostRef)
+		if err := r.Status().Update(ctx, database); err != nil {
+			log.Error(err, "unable to update Database status")
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	switch databaseHost.Spec.Type {
+	case k8sv1.MySQL:
+		log.Info("MySQL database host")
+	case k8sv1.Postgres:
+		log.Info("Postgres database host")
+
+		conn := databaseHost.Spec
+		connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s database=postgres sslmode=disable", conn.Host, conn.Port, conn.Superuser, conn.Password)
+
+		db, err := sql.Open("postgres", connectionString)
+		if err != nil {
+			log.Error(err, "unable to connect to host")
+			// Todo: Proper error handling for connection failure
+			// Introduce a new status condition for connection in the databasehost
+			if err := r.Status().Update(ctx, database); err != nil {
+				log.Error(err, "unable to update DatabaseHost status")
+				return ctrl.Result{}, err
+			}
+			// Todo: Configure RequeueAfter to retry the connection
+			return ctrl.Result{}, err
+		}
+		defer db.Close()
+
+		owner := conn.Superuser
+		charset := "UTF8"
+		collation := "en_US.UTF-8"
+
+		if spec.Owner != "" {
+			owner = spec.Owner
+		}
+
+		if spec.Charset != "" {
+			charset = spec.Charset
+		}
+
+		if spec.Collation != "" {
+			collation = spec.Collation
+		}
+
+		row := db.QueryRow("SELECT datname FROM pg_database WHERE datname = ?", spec.Name)
+		err = row.Scan()
+
+		if err == sql.ErrNoRows {
+			db.Exec("CREATE DATABASE \"?\" WITH OWNER \"$2\" ENCODING '$3' LC_COLLATE = '$4' LC_CTYPE = '$4';", spec.Name, owner, charset, collation)
+		} else if err != nil {
+			log.Error(err, "unable to create database")
+			database.Status.CreationStatus = fmt.Sprintf("Failed to create database '%s': %s", spec.Name, err.Error())
+			if err := r.Status().Update(ctx, database); err != nil {
+				log.Error(err, "unable to update Database status")
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{}, err
+		}
+	}
 
 	return ctrl.Result{}, nil
 }

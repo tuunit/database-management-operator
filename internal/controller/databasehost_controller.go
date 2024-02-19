@@ -28,6 +28,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	k8sv1 "github.com/tuunit/external-database-operator/api/v1"
+
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 // DatabaseHostReconciler reconciles a DatabaseHost object
@@ -76,8 +79,10 @@ func (r *DatabaseHostReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				log.Error(err, "unable to update DatabaseHost status")
 				return ctrl.Result{}, err
 			}
+			// Todo: Configure RequeueAfter to retry the connection
 			return ctrl.Result{}, err
 		}
+		defer db.Close()
 
 		if err := db.Ping(); err != nil {
 			log.Error(err, "unable to ping host")
@@ -86,6 +91,7 @@ func (r *DatabaseHostReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				log.Error(err, "unable to update DatabaseHost status")
 				return ctrl.Result{}, err
 			}
+			// Todo: Configure RequeueAfter to retry the connection
 			return ctrl.Result{}, err
 		}
 	default:
@@ -94,7 +100,7 @@ func (r *DatabaseHostReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			log.Error(err, "unable to update DatabaseHost status")
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{}, fmt.Errorf("database type '%s' not supported", spec.Type)
+		return ctrl.Result{}, nil
 	}
 
 	databaseHost.Status.ConnectionStatus = fmt.Sprintf("Connection with host '%s' was successful", spec.Host)

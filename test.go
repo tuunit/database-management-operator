@@ -29,4 +29,14 @@ func main() {
 	}
 
 	fmt.Println("Successfully connected!")
+
+	row := db.QueryRow("SELECT datname FROM pg_database WHERE datname = ?", "test")
+	err = row.Scan()
+
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Database 'test' does not exist")
+	} else {
+		fmt.Println("Database 'test' exists")
+	}
 }

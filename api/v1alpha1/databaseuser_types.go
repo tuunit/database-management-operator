@@ -26,8 +26,13 @@ import (
 // https://dev.mysql.com/doc/refman/8.3/en/grant.html
 type Privilege struct {
 	// The type of object for which to grant privileges
+	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:Required
 	ObjectType string `json:"objectType"`
+	// The name of the object for which to grant privileges
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:Required
+	ObjectName string `json:"objectName"`
 	// The list of privileges to grant
 	// +kubebuilder:validation:MinItems=1
 	// +kubebuilder:validation:Required
@@ -47,10 +52,6 @@ type SecretKeySelector struct {
 
 // DatabaseUserSpec defines the desired state of DatabaseUser
 type DatabaseUserSpec struct {
-	// DatabaseRef is a reference to a Database object in the same namespace
-	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:Required
-	DatabaseRef string `json:"databaseRef"`
 	// Username is the name of the user to create
 	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:Required

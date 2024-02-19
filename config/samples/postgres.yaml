@@ -1,3 +1,4 @@
+---
 apiVersion: k8s.tuunit.com/v1
 kind: DatabaseHost
 metadata:
@@ -8,3 +9,11 @@ spec:
   password: password
   port: 5432
   type: postgres
+---
+apiVersion: k8s.tuunit.com/v1alpha1
+kind: Database
+metadata:
+  name: test
+spec:
+  name: test
+  databaseHostRef: postgres
