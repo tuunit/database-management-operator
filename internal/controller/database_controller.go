@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	k8sv1alpha1 "github.com/tuunit/database-management-operator/api/v1alpha1"
+	k8sv1alpha1 "github.com/tuunit/external-database-operator/api/v1alpha1"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"

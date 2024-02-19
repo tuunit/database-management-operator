@@ -34,9 +34,9 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	k8sv1 "github.com/tuunit/database-management-operator/api/v1"
-	k8sv1alpha1 "github.com/tuunit/database-management-operator/api/v1alpha1"
-	"github.com/tuunit/database-management-operator/internal/controller"
+	k8sv1 "github.com/tuunit/external-database-operator/api/v1"
+	k8sv1alpha1 "github.com/tuunit/external-database-operator/api/v1alpha1"
+	"github.com/tuunit/external-database-operator/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
 

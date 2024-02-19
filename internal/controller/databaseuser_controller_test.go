@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	k8sv1alpha1 "github.com/tuunit/database-management-operator/api/v1alpha1"
+	k8sv1alpha1 "github.com/tuunit/external-database-operator/api/v1alpha1"
 )
 
 var _ = Describe("DatabaseUser Controller", func() {

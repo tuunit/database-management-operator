@@ -6,22 +6,22 @@ metadata:
     app.kubernetes.io/name: clusterrole
     app.kubernetes.io/instance: databaseuser-viewer-role
     app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: database-management-operator
-    app.kubernetes.io/part-of: database-management-operator
+    app.kubernetes.io/created-by: external-database-operator
+    app.kubernetes.io/part-of: external-database-operator
     app.kubernetes.io/managed-by: kustomize
   name: databaseuser-viewer-role
 rules:
-- apiGroups:
-  - k8s.tuunit.com
-  resources:
-  - databaseusers
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - k8s.tuunit.com
-  resources:
-  - databaseusers/status
-  verbs:
-  - get
+  - apiGroups:
+      - k8s.tuunit.com
+    resources:
+      - databaseusers
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - k8s.tuunit.com
+    resources:
+      - databaseusers/status
+    verbs:
+      - get

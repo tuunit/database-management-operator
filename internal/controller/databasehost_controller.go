@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	k8sv1 "github.com/tuunit/database-management-operator/api/v1"
+	k8sv1 "github.com/tuunit/external-database-operator/api/v1"
 )
 
 // DatabaseHostReconciler reconciles a DatabaseHost object

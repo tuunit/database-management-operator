@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	k8sv1 "github.com/tuunit/database-management-operator/api/v1"
+	k8sv1 "github.com/tuunit/external-database-operator/api/v1"
 )
 
 var _ = Describe("DatabaseHost Controller", func() {

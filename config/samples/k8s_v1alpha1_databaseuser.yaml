@@ -4,9 +4,9 @@ metadata:
   labels:
     app.kubernetes.io/name: databaseuser
     app.kubernetes.io/instance: databaseuser-sample
-    app.kubernetes.io/part-of: database-management-operator
+    app.kubernetes.io/part-of: external-database-operator
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: database-management-operator
+    app.kubernetes.io/created-by: external-database-operator
   name: databaseuser-sample
 spec:
   # TODO(user): Add fields here

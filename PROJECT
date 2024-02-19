@@ -5,8 +5,8 @@
 domain: tuunit.com
 layout:
 - go.kubebuilder.io/v4
-projectName: database-management-operator
-repo: github.com/tuunit/database-management-operator
+projectName: external-database-operator
+repo: github.com/tuunit/external-database-operator
 resources:
 - api:
     crdVersion: v1
@@ -15,7 +15,7 @@ resources:
   domain: tuunit.com
   group: k8s
   kind: DatabaseHost
-  path: github.com/tuunit/database-management-operator/api/v1
+  path: github.com/tuunit/external-database-operator/api/v1
   version: v1
 - api:
     crdVersion: v1
@@ -24,7 +24,7 @@ resources:
   domain: tuunit.com
   group: k8s
   kind: Database
-  path: github.com/tuunit/database-management-operator/api/v1alpha1
+  path: github.com/tuunit/external-database-operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -33,6 +33,6 @@ resources:
   domain: tuunit.com
   group: k8s
   kind: DatabaseUser
-  path: github.com/tuunit/database-management-operator/api/v1alpha1
+  path: github.com/tuunit/external-database-operator/api/v1alpha1
   version: v1alpha1
 version: "3"

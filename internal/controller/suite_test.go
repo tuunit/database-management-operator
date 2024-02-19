@@ -32,8 +32,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	k8sv1 "github.com/tuunit/database-management-operator/api/v1"
-	k8sv1alpha1 "github.com/tuunit/database-management-operator/api/v1alpha1"
+	k8sv1 "github.com/tuunit/external-database-operator/api/v1"
+	k8sv1alpha1 "github.com/tuunit/external-database-operator/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
