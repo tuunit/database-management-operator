@@ -124,22 +124,34 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			collation = spec.Collation
 		}
 
-		row := db.QueryRow("SELECT datname FROM pg_database WHERE datname = ?", spec.Name)
-		err = row.Scan()
+		var datname string
+		row := db.QueryRow(`SELECT datname FROM pg_database WHERE datname = $1`, spec.Name)
+		err = row.Scan(&datname)
 
 		if err == sql.ErrNoRows {
-			db.Exec("CREATE DATABASE \"?\" WITH OWNER \"$2\" ENCODING '$3' LC_COLLATE = '$4' LC_CTYPE = '$4';", spec.Name, owner, charset, collation)
-		} else if err != nil {
+			_, err = db.Exec(`CREATE DATABASE "` + spec.Name + `"
+												  WITH OWNER "` + owner + `" 
+													ENCODING '` + charset + `'
+													LC_COLLATE '` + collation + `'
+													LC_CTYPE '` + collation + `'`)
+		}
+
+		if err != nil && err != sql.ErrNoRows {
 			log.Error(err, "unable to create database")
 			database.Status.CreationStatus = fmt.Sprintf("Failed to create database '%s': %s", spec.Name, err.Error())
 			if err := r.Status().Update(ctx, database); err != nil {
-				log.Error(err, "unable to update Database status")
+				log.Error(err, "unable to update database status")
 				return ctrl.Result{}, err
 			}
 			return ctrl.Result{}, err
 		}
 	}
 
+	database.Status.CreationStatus = fmt.Sprintf("Database '%s' successfully created.", spec.Name)
+	if err := r.Status().Update(ctx, database); err != nil {
+		log.Error(err, "unable to update database status")
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{}, nil
 }
 
