@@ -18,7 +18,6 @@ package controller
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,9 +27,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	k8sv1 "github.com/tuunit/external-database-operator/api/v1"
+	"github.com/tuunit/external-database-operator/internal/provider"
 
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
 )
 
 // DatabaseHostReconciler reconciles a DatabaseHost object
@@ -63,39 +62,28 @@ func (r *DatabaseHostReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	spec := databaseHost.Spec
 
+	var err error
+
 	switch databaseHost.Spec.Type {
 	case k8sv1.MySQL:
 		log.Info("MySQL database host")
 		// Todo: Implement MySQL connection
 	case k8sv1.Postgres:
 		log.Info("Postgres database host")
-		connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s database=postgres sslmode=disable", spec.Host, spec.Port, spec.Superuser, spec.Password)
-
-		db, err := sql.Open("postgres", connectionString)
-		if err != nil {
-			log.Error(err, "unable to connect to host")
-			databaseHost.Status.ConnectionStatus = fmt.Sprintf("Failed to connect to '%s@%s': %s", spec.Superuser, spec.Host, err.Error())
-			if err := r.Status().Update(ctx, databaseHost); err != nil {
-				log.Error(err, "unable to update DatabaseHost status")
-				return ctrl.Result{}, err
-			}
-			// Todo: Configure RequeueAfter to retry the connection
-			return ctrl.Result{}, err
-		}
-		defer db.Close()
-
-		if err := db.Ping(); err != nil {
-			log.Error(err, "unable to ping host")
-			databaseHost.Status.ConnectionStatus = fmt.Sprintf("Failed to ping '%s@%s': %s", spec.Superuser, spec.Host, err.Error())
-			if err := r.Status().Update(ctx, databaseHost); err != nil {
-				log.Error(err, "unable to update DatabaseHost status")
-				return ctrl.Result{}, err
-			}
-			// Todo: Configure RequeueAfter to retry the connection
-			return ctrl.Result{}, err
-		}
+		client := provider.NewPostgresClient(spec)
+		err = client.CheckConnection()
+		// Todo: Configure RequeueAfter to retry the connection
 	default:
 		databaseHost.Status.ConnectionStatus = fmt.Sprintf("Database type '%s' not supported", spec.Type)
+		if err := r.Status().Update(ctx, databaseHost); err != nil {
+			log.Error(err, "unable to update DatabaseHost status")
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
+	}
+
+	if err != nil {
+		databaseHost.Status.ConnectionStatus = err.Error()
 		if err := r.Status().Update(ctx, databaseHost); err != nil {
 			log.Error(err, "unable to update DatabaseHost status")
 			return ctrl.Result{}, err

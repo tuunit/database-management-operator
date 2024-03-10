@@ -67,6 +67,7 @@ spec:
               creationStatus:
                 type: string
               creationTime:
+                format: date-time
                 type: string
             type: object
         type: object

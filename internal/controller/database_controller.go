@@ -18,9 +18,9 @@ package controller
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -28,6 +28,7 @@ import (
 
 	k8sv1 "github.com/tuunit/external-database-operator/api/v1"
 	k8sv1alpha1 "github.com/tuunit/external-database-operator/api/v1alpha1"
+	"github.com/tuunit/external-database-operator/internal/provider"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
@@ -85,73 +86,37 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	var err error
+
 	switch databaseHost.Spec.Type {
 	case k8sv1.MySQL:
 		log.Info("MySQL database host")
 	case k8sv1.Postgres:
 		log.Info("Postgres database host")
 
-		conn := databaseHost.Spec
-		connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s database=postgres sslmode=disable", conn.Host, conn.Port, conn.Superuser, conn.Password)
+		client := provider.NewPostgresClient(databaseHost.Spec)
+		err = client.CreateDB(&spec)
+	}
 
-		db, err := sql.Open("postgres", connectionString)
-		if err != nil {
-			log.Error(err, "unable to connect to host")
-			// Todo: Proper error handling for connection failure
-			// Introduce a new status condition for connection in the databasehost
-			if err := r.Status().Update(ctx, database); err != nil {
-				log.Error(err, "unable to update DatabaseHost status")
-				return ctrl.Result{}, err
-			}
-			// Todo: Configure RequeueAfter to retry the connection
+	if err != nil {
+		database.Status.CreationStatus = err.Error()
+
+		if err := r.Status().Update(ctx, database); err != nil {
+			log.Error(err, "unable to update database status")
 			return ctrl.Result{}, err
 		}
-		defer db.Close()
 
-		owner := conn.Superuser
-		charset := "UTF8"
-		collation := "en_US.UTF-8"
-
-		if spec.Owner != "" {
-			owner = spec.Owner
-		}
-
-		if spec.Charset != "" {
-			charset = spec.Charset
-		}
-
-		if spec.Collation != "" {
-			collation = spec.Collation
-		}
-
-		var datname string
-		row := db.QueryRow(`SELECT datname FROM pg_database WHERE datname = $1`, spec.Name)
-		err = row.Scan(&datname)
-
-		if err == sql.ErrNoRows {
-			_, err = db.Exec(`CREATE DATABASE "` + spec.Name + `"
-												  WITH OWNER "` + owner + `" 
-													ENCODING '` + charset + `'
-													LC_COLLATE '` + collation + `'
-													LC_CTYPE '` + collation + `'`)
-		}
-
-		if err != nil && err != sql.ErrNoRows {
-			log.Error(err, "unable to create database")
-			database.Status.CreationStatus = fmt.Sprintf("Failed to create database '%s': %s", spec.Name, err.Error())
-			if err := r.Status().Update(ctx, database); err != nil {
-				log.Error(err, "unable to update database status")
-				return ctrl.Result{}, err
-			}
-			return ctrl.Result{}, err
-		}
+		return ctrl.Result{}, nil
 	}
 
 	database.Status.CreationStatus = fmt.Sprintf("Database '%s' successfully created.", spec.Name)
+	database.Status.CreationTime = metav1.Now()
+
 	if err := r.Status().Update(ctx, database); err != nil {
 		log.Error(err, "unable to update database status")
 		return ctrl.Result{}, err
 	}
+
 	return ctrl.Result{}, nil
 }
 

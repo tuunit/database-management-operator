@@ -26,15 +26,15 @@ type DatabaseSpec struct {
 	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:Required
 	Name string `json:"name"`
+	// Owner is the name of the user that will own the database
+	// +optional
+	Owner string `json:"owner,omitempty"`
 	// Charset is the character set for the database
 	// +optional
 	Charset string `json:"charset,omitempty"`
 	// Collation is the collation for the database
 	// +optional
 	Collation string `json:"collation,omitempty"`
-	// Owner is the name of the user that will own the database
-	// +optional
-	Owner string `json:"owner,omitempty"`
 
 	// HostRef is a reference to a DatabaseHost object in the same namespace
 	// +kubebuilder:validation:MinLength=1
@@ -44,8 +44,8 @@ type DatabaseSpec struct {
 
 // DatabaseStatus defines the observed state of Database
 type DatabaseStatus struct {
-	CreationTime   string `json:"creationTime,omitempty"`
-	CreationStatus string `json:"creationStatus,omitempty"`
+	CreationTime   metav1.Time `json:"creationTime,omitempty"`
+	CreationStatus string      `json:"creationStatus,omitempty"`
 }
 
 //+kubebuilder:object:root=true
