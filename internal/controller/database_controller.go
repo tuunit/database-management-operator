@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	k8sv1 "github.com/tuunit/external-database-operator/api/v1"
@@ -56,10 +57,31 @@ type DatabaseReconciler struct {
 func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
+	finalizer := "k8s.tuunit.com/finalizer"
+
 	database := &k8sv1alpha1.Database{}
 	if err := r.Get(ctx, req.NamespacedName, database); err != nil {
-		log.Error(err, "unable to fetch Database")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if database.ObjectMeta.DeletionTimestamp.IsZero() {
+		if !controllerutil.ContainsFinalizer(database, finalizer) {
+			controllerutil.AddFinalizer(database, finalizer)
+			if err := r.Update(ctx, database); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
+		if controllerutil.ContainsFinalizer(database, finalizer) {
+			// do stuff before deletion of database
+
+			controllerutil.RemoveFinalizer(database, finalizer)
+			if err := r.Update(ctx, database); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+		return ctrl.Result{}, nil
 	}
 
 	spec := database.Spec
